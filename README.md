@@ -4,14 +4,18 @@ A complete local web application for searching Azure DevOps tickets using a proj
 
 ## 🎯 Features
 
-- **Search by Keyword**: Find tickets containing a specific keyword in the title
-- **Secure Authentication**: Uses Personal Access Token (PAT) with Basic Auth
-- **Beautiful Results Table**: Display ticket ID, title, state, assigned user, and change date
-- **Direct Azure DevOps Links**: Click to open tickets directly in Azure DevOps
-- **Error Handling**: Clear error messages for invalid PAT or API issues
-- **Responsive Design**: Works on desktop and mobile devices
-- **Loading Spinner**: Visual feedback during search operations
-- **Result Limit**: Returns up to 50 most recent tickets
+- **Save PAT Locally** - Store your Personal Access Token using browser localStorage so you don't need to re-enter it
+- **PAT Tabs** - Switch between saved PAT and new PAT options
+- **Search by Keyword** - Find tickets containing a specific keyword in the title
+- **Advanced Filtering** - Filter results by state, assigned team member, and title search
+- **Secure Authentication** - Uses Personal Access Token (PAT) with Basic Auth
+- **Beautiful Results Table** - Display ticket ID, title, state, assigned user, and change date
+- **Direct Azure DevOps Links** - Click to open tickets directly in Azure DevOps
+- **Error Handling** - Clear error messages for invalid PAT or API issues
+- **Responsive Design** - Works on desktop and mobile devices
+- **Loading Spinner** - Visual feedback during search operations
+- **Result Limit** - Returns up to 50 most recent tickets
+- **REST API Ready** - Copilot Studio integration available via `/api/search-tickets`
 
 ## 📋 Requirements
 
