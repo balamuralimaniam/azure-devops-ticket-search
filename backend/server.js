@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
@@ -229,12 +230,26 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Serve frontend build assets when available
-const frontendDist = path.join(__dirname, 'dist');
-app.use(express.static(frontendDist));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendDist, 'index.html'));
+// Keep API responses predictable for unknown /api routes.
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
 });
+
+// Serve frontend build assets only when build output exists.
+const frontendDist = path.join(__dirname, 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+} else {
+  app.get('*', (req, res) => {
+    res.status(503).json({
+      error: 'Frontend build not found',
+      details: 'Build frontend and copy output to backend/dist for UI hosting.',
+    });
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);
