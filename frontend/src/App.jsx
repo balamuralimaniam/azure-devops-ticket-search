@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './App.css';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+
 function App() {
   const [savedPat, setSavedPat] = useState('');
   const [patTab, setPatTab] = useState('saved');
@@ -65,7 +67,7 @@ function App() {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/search', {
+      const response = await axios.post(`${API_BASE_URL}/api/search`, {
         pat: activePat.trim(),
         keyword: keyword.trim(),
       });
