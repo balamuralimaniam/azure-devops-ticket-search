@@ -14,9 +14,8 @@ app.use(express.json());
 
 // Constants
 const ORGANIZATION = 'ni';
-const PROJECT = 'DevCentral';
 const API_VERSION = '7.1';
-const BASE_URL = `https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_apis`;
+const BASE_URL = `https://dev.azure.com/${ORGANIZATION}/_apis`;
 
 // Helper function to create Basic Auth header
 function getBasicAuthHeader(pat) {
@@ -35,9 +34,15 @@ app.post('/api/search', async (req, res) => {
     }
 
     const authHeader = getBasicAuthHeader(pat);
+    const normalizedKeyword = keyword.trim();
+    const escapedKeyword = normalizedKeyword.replace(/'/g, "''");
+    const isNumericKeyword = /^\d+$/.test(normalizedKeyword);
+    const searchClause = isNumericKeyword
+      ? `([System.Id] = ${normalizedKeyword} OR [System.Title] CONTAINS '${escapedKeyword}')`
+      : `[System.Title] CONTAINS '${escapedKeyword}'`;
 
     // Step 1: Execute WIQL query to get work item IDs
-    const wiqlQuery = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${PROJECT}' AND [System.Title] CONTAINS '${keyword}' AND [System.State] <> 'Closed' ORDER BY [System.ChangedDate] DESC`;
+    const wiqlQuery = `SELECT [System.Id] FROM WorkItems WHERE ${searchClause} AND [System.State] <> 'Closed' ORDER BY [System.ChangedDate] DESC`;
 
     let workItemIds = [];
     try {
@@ -84,16 +89,19 @@ app.post('/api/search', async (req, res) => {
         }
       );
 
-      tickets = detailsResponse.data.value.map((item) => ({
-        id: item.id,
-        title: item.fields['System.Title'] || 'N/A',
-        state: item.fields['System.State'] || 'N/A',
-        assignedTo: item.fields['System.AssignedTo']?.displayName || 'Unassigned',
-        changedDate: new Date(
-          item.fields['System.ChangedDate']
-        ).toLocaleDateString(),
-        link: `https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_workitems/edit/${item.id}`,
-      }));
+      tickets = detailsResponse.data.value.map((item) => {
+        const teamProject = item.fields['System.TeamProject'] || '';
+        return {
+          id: item.id,
+          title: item.fields['System.Title'] || 'N/A',
+          state: item.fields['System.State'] || 'N/A',
+          assignedTo: item.fields['System.AssignedTo']?.displayName || 'Unassigned',
+          changedDate: new Date(
+            item.fields['System.ChangedDate']
+          ).toLocaleDateString(),
+          link: `https://dev.azure.com/${ORGANIZATION}/${teamProject}/_workitems/edit/${item.id}`,
+        };
+      });
     } catch (error) {
       if (error.response?.status === 401) {
         return res.status(401).json({ error: 'Invalid PAT' });
@@ -126,9 +134,15 @@ app.post('/api/search-tickets', async (req, res) => {
     }
 
     const authHeader = getBasicAuthHeader(pat);
+    const normalizedKeyword = keyword.trim();
+    const escapedKeyword = normalizedKeyword.replace(/'/g, "''");
+    const isNumericKeyword = /^\d+$/.test(normalizedKeyword);
+    const searchClause = isNumericKeyword
+      ? `([System.Id] = ${normalizedKeyword} OR [System.Title] CONTAINS '${escapedKeyword}')`
+      : `[System.Title] CONTAINS '${escapedKeyword}'`;
 
     // Build WIQL query with optional filters
-    let wiqlQuery = `SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = '${PROJECT}' AND [System.Title] CONTAINS '${keyword}' AND [System.State] <> 'Closed'`;
+    let wiqlQuery = `SELECT [System.Id] FROM WorkItems WHERE ${searchClause} AND [System.State] <> 'Closed'`;
     
     if (filter_state && filter_state !== 'All') {
       wiqlQuery += ` AND [System.State] = '${filter_state}'`;
@@ -184,16 +198,19 @@ app.post('/api/search-tickets', async (req, res) => {
       );
 
       tickets = detailsResponse.data.value
-        .map((item) => ({
-          id: item.id,
-          title: item.fields['System.Title'] || 'N/A',
-          state: item.fields['System.State'] || 'N/A',
-          assignedTo: item.fields['System.AssignedTo']?.displayName || 'Unassigned',
-          changedDate: new Date(
-            item.fields['System.ChangedDate']
-          ).toLocaleDateString(),
-          link: `https://dev.azure.com/${ORGANIZATION}/${PROJECT}/_workitems/edit/${item.id}`,
-        }))
+        .map((item) => {
+          const teamProject = item.fields['System.TeamProject'] || '';
+          return {
+            id: item.id,
+            title: item.fields['System.Title'] || 'N/A',
+            state: item.fields['System.State'] || 'N/A',
+            assignedTo: item.fields['System.AssignedTo']?.displayName || 'Unassigned',
+            changedDate: new Date(
+              item.fields['System.ChangedDate']
+            ).toLocaleDateString(),
+            link: `https://dev.azure.com/${ORGANIZATION}/${teamProject}/_workitems/edit/${item.id}`,
+          };
+        })
         .filter((ticket) => {
           if (filter_assigned_to && filter_assigned_to !== 'All') {
             return ticket.assignedTo === filter_assigned_to;

@@ -119,7 +119,7 @@ function App() {
       <div className="app-wrapper">
         <header className="header">
           <h1>🔍 Azure DevOps Ticket Search</h1>
-          <p>Search tickets in DevCentral project</p>
+          <p>Search tickets across Azure DevOps organization ni</p>
         </header>
 
         <form onSubmit={handleSearch} className="search-form">
@@ -317,8 +317,7 @@ function App() {
 
       <footer className="footer">
         <p>
-          Azure DevOps Organization: <strong>ni</strong> | Project:{' '}
-          <strong>DevCentral</strong>
+          Azure DevOps Organization: <strong>ni</strong>
         </p>
       </footer>
     </div>
